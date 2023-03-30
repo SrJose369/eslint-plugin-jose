@@ -1,13 +1,13 @@
 {
 	"name": "eslint-plugin-jose",
-	"version": "1.0.0",
+	"version": "0.2.0",
 	"description": "Plugin que contiene reglas que uso personalmente",
 	"main": "dist/index.js",
 	"scripts": {
 		"doc": "jsdoc -c jsdoc.json",
 		"build": "tsc --project tsconfig.json",
 		"test": "jest -c jest.config.js",
-		"lint": "eslint -c .eslintrc.json ./lib"
+		"lint": "eslint -c .eslintrc.json ./src/"
 	},
 	"author": {
 		"name": "Jose",
@@ -16,7 +16,7 @@
 	},
 	"license": "MIT",
 	"type": "commonjs",
-	"keywords": [],
+	"keywords": ["eslint", "eslint-plugins"],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/SrJose369/eslint-plugin-jose.git",
