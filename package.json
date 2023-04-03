@@ -16,7 +16,10 @@
 	},
 	"license": "MIT",
 	"type": "commonjs",
-	"keywords": ["eslint", "eslint-plugins"],
+	"keywords": [
+		"eslint",
+		"eslint-plugins"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/SrJose369/eslint-plugin-jose.git",

@@ -6,6 +6,11 @@
 - ## No usar ! para negar un booleanos.
 - ## En una Expresion Binaria el lado izquierdo no puede ser un Literal(false o true).
 
+> ## [0.2.1] - 2023-04-03
+### <t>Fixed</t>
+- Pequeño fix, si el UnaryExpresion era otra cosa que no sea "!", tambien me daba error, como "typeof", ahora solo da error si el operator es "!".
+- Ahora si se usa un Litera en BinaryExpresion solo da error si el value del Literal es boolean.
+
 > ## [0.2.0] - 2023-03-30
 ### <t>Changed</t>
 Por ahora todo esta andando bien, cambie algunas cosas, deje todo mas ordenando para poder suibrlo a github
@@ -19,4 +24,5 @@ Por ahora todo esta andando bien, cambie algunas cosas, deje todo mas ordenando 
 
 ## License [MIT](https://choosealicense.com/licenses/mit/)
 
+[0.2.1]: https://github.com/SrJose369/eslint-plugin-jose/releases/tag/v0.2.1
 [0.2.0]: https://github.com/SrJose369/eslint-plugin-jose/releases/tag/v0.2.0

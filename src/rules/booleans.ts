@@ -11,7 +11,7 @@ type Options = [
 	}
 ];
 
-const createRule = ESLintUtils.RuleCreator(name => "https://github.com/SrJose369/eslint-plugin-jose/README.md");
+const createRule = ESLintUtils.RuleCreator(name => "https://github.com/SrJose369/eslint-plugin-jose#readme");
 export const expliBol = createRule<Options, MessageIds>({
 	create(context) {
 		return {
@@ -57,14 +57,14 @@ function checkBoolean(node: TSESTree.IfStatement["test"] | TSESTree.BinaryExpres
 		let msj: MessageIds | undefined;
 		let nodeName: string | undefined;
 		const nl = node?.left;
-		if (nl?.type === "Literal") {
+		if (nl?.type === "Literal" && typeof nl?.value === "boolean") {
 			error2 = true;
 			errNode2 = nl;
 			msj = "leftLiteral";
-			nodeName = "" + nl.value;
+			nodeName = "" + nl?.value;
 		}
 		if (!msj) msj = "notUseUnary";
-		if (nl?.type === "UnaryExpression") {
+		if (nl?.type === "UnaryExpression" && nl?.operator === "!") {
 			const arg = nl?.argument;
 			errNode2 = nl;
 			error2 = true;
