@@ -48,9 +48,9 @@ export const expliBol = createRule<Options, MessageIds>({
 	defaultOptions: [{"allowTrue": false}],
 });
 
-type uic = TSESTree.UnaryExpression | TSESTree.Identifier | TSESTree.CallExpression;
+type uic = TSESTree.UnaryExpression | TSESTree.Identifier | TSESTree.CallExpression | TSESTree.MemberExpression;
 
-function checkBoolean(node: TSESTree.IfStatement["test"] | TSESTree.BinaryExpression | TSESTree.UnaryExpression | TSESTree.Identifier | TSESTree.CallExpression, context: RuleContext<MessageIds, Options>): void {
+function checkBoolean(node: TSESTree.IfStatement["test"] | TSESTree.BinaryExpression | uic, context: RuleContext<MessageIds, Options>): void {
 	if (node?.type === "BinaryExpression") {
 		let error2 = false;
 		let errNode2: TSESTree.Literal | TSESTree.UnaryExpression | TSESTree.Identifier | TSESTree.CallExpression;
@@ -71,9 +71,11 @@ function checkBoolean(node: TSESTree.IfStatement["test"] | TSESTree.BinaryExpres
 			if (arg?.type === "Identifier") {
 				nodeName = arg?.name;
 			}
-			if (arg?.type === "CallExpression" && arg?.callee?.type === "Identifier") {
-				nodeName = arg?.callee?.name;
+			if (arg?.type === "CallExpression") {
+				if (arg?.callee?.type === "Identifier") nodeName = arg?.callee?.name;
+				if (arg?.callee?.type === "MemberExpression" && arg?.callee?.property?.type === "Identifier") nodeName = arg?.callee?.property?.name; // lamada a funciones desde objetos ej: console.log()
 			}
+			if (arg?.type === "MemberExpression" && arg?.property?.type === "Identifier") nodeName = arg?.property?.name; // varibales booleanas en obetos ej: miObj.miBooleano
 			if (!errNode2) {
 				errNode2 = nl;
 			}
@@ -94,13 +96,26 @@ function checkBoolean(node: TSESTree.IfStatement["test"] | TSESTree.BinaryExpres
 		checkBoolean(node?.right, context);
 	}
 	if (node?.type === "UnaryExpression") checkBoolean(node?.argument, context);
-	if (node?.type === "CallExpression") checkBoolean(node?.callee, context);
+	if (node?.type === "CallExpression") {
+		if (node?.callee?.type === "Identifier" || node?.callee?.type === "MemberExpression") checkBoolean(node?.callee, context);
+	}
+	if (node?.type === "MemberExpression") {
+		if (node?.property?.type === "Identifier") checkBoolean(node?.property, context);
+	}
 	if (node?.type !== "Identifier") return;
+	console.log(node.name);
 	if (context?.options[0].allowTrue === true) {
 		if (node?.parent?.type === "CallExpression") {
 			if (node?.parent?.parent?.type !== "UnaryExpression") return;
 		} else {
-			if (node?.parent?.type !== "UnaryExpression") return;
+			if (node?.parent?.type === "MemberExpression") {
+				if (node?.parent?.parent?.type === "CallExpression") {
+					if (node?.parent?.parent?.parent?.type !== "UnaryExpression") return;
+				}
+				if (node?.parent?.parent?.type !== "UnaryExpression") return; // deberia ser acceder a un objeto normal obj.miVar
+			} else {
+				if (node?.parent?.type !== "UnaryExpression") return;
+			}
 		}
 	}
 
@@ -115,34 +130,52 @@ function checkBoolean(node: TSESTree.IfStatement["test"] | TSESTree.BinaryExpres
 	let ok = false;
 	let errNode: uic = node;
 	let func;
-	if (node?.parent?.type === "CallExpression") {
+	if (node?.parent?.type === "CallExpression" || (node?.parent?.type === "MemberExpression" && node?.parent?.parent?.type === "CallExpression")) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const dec: any = checker.getSymbolAtLocation(originalNode)?.valueDeclaration;
 		if (dec?.type?.kind === ts.SyntaxKind.BooleanKeyword) {
 			ok = true;
-			const nodeUn = node?.parent?.parent;
-			if (nodeUn?.type === "UnaryExpression") {
+			let nodeUn = node?.parent;
+			if (node?.parent?.parent?.type === "CallExpression") nodeUn = node?.parent?.parent;
+			if (nodeUn?.parent?.type === "UnaryExpression") {
 				errNode = nodeUn;
 				func = (fixer: RuleFixer) => [
 					{ // con este objeto le digo que texto va ir al comienzo del nodo, osea ""(nada, borrar), el range[0] es donde comienza
-						range: [nodeUn?.range[0], nodeUn?.range[0] + 1],
+						range: [errNode?.range[0], errNode?.range[0] + 1],
 						text: ""
 					},
-					fixer.insertTextAfter(nodeUn, " === false")
+					fixer.insertTextAfter(errNode, " === false")
 				];
 			} else {
-				errNode = node?.parent;
-				func = (fixer: RuleFixer) => fixer.insertTextAfter(node?.parent, " === true");
+				errNode = nodeUn;
+				func = (fixer: RuleFixer) => fixer.insertTextAfter(errNode, " === true");
 			}
 		}
 	} else {
-		if (node?.parent?.type === "UnaryExpression") errNode = node?.parent;
-		func = (fixer: RuleFixer) => {
-			if (node?.parent?.type === "UnaryExpression") {
-				return fixer.replaceText(node?.parent, node.name + " === false");
+		if (node?.parent?.type === "MemberExpression") {
+			console.log(node.name);
+			if (node?.parent?.parent?.type === "UnaryExpression") errNode = node?.parent?.parent;
+			else errNode = node?.parent;
+			if (node?.parent?.parent?.type === "UnaryExpression") {
+				func = (fixer: RuleFixer) => [
+					{
+						range: [errNode?.range[0], errNode?.range[0] + 1],
+						text: ""
+					},
+					fixer.insertTextAfter(errNode, " === false")
+				];
+			} else {
+				func = (fixer: RuleFixer) => fixer.insertTextAfter(errNode, " === true");
 			}
-			return fixer.insertTextAfter(node, " === true");
-		};
+		} else {
+			if (node?.parent?.type === "UnaryExpression") errNode = node?.parent;
+			func = (fixer: RuleFixer) => {
+				if (node?.parent?.type === "UnaryExpression") {
+					return fixer.replaceText(errNode, node.name + " === false");
+				}
+				return fixer.insertTextAfter(errNode, " === true");
+			};
+		}
 	}
 	if (tsutils.isTypeFlagSet(nodeType, ts.TypeFlags.BooleanLike) || ok) {
 		context.report({
