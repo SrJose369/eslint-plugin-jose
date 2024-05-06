@@ -9,7 +9,8 @@ export const noArrowFun = createRule<Options, MessageIds>({
 		return {
 			ArrowFunctionExpression(node) {
 				console.log("node: ", node);
-				const ini = node.params.length > 0 ? node.params[node.params.length - 1].range[1] + 1 : node.range[1] + 3;
+				// eslint-disable-next-line max-len
+				const ini = node?.returnType === undefined ? (node.params.length > 0 ? node.params[node.params.length - 1].range[1] + 1 : node.range[0] + 3) : node.returnType.range[1] + 1;
 				const fin = ini + 3;
 				context.report({
 					node: node,

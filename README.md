@@ -6,6 +6,10 @@
 - ## No usar ! para negar un booleanos.
 - ## En una Expresion Binaria el lado izquierdo no puede ser un Literal(false o true).
 
+> ## [0.2.4] - 2024-05-06
+### <t>Fixed</t>
+- Si el arrow function no tenia parametros no andaba, tampoco si se especificaba el return type.
+
 > ## [0.2.3] - 2024-05-06
 ### <t>Added</t>
 - Nueva regla, no usar arrow functions y usar funciones nombrabas y evitar problemas con funciones anonimas, sobre todo para debuggear(me paso en mi extension).
@@ -32,6 +36,7 @@ Por ahora todo esta andando bien, cambie algunas cosas, deje todo mas ordenando 
 
 ## License [MIT](https://choosealicense.com/licenses/mit/)
 
+[0.2.4]: https://github.com/SrJose369/eslint-plugin-jose/releases/tag/v0.2.4
 [0.2.3]: https://github.com/SrJose369/eslint-plugin-jose/releases/tag/v0.2.3
 [0.2.2]: https://github.com/SrJose369/eslint-plugin-jose/releases/tag/v0.2.2
 [0.2.1]: https://github.com/SrJose369/eslint-plugin-jose/releases/tag/v0.2.1
